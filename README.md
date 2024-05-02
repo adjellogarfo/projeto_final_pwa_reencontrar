@@ -1,4 +1,4 @@
-# PWA-Projecto
+# PWA-Projecto Final
 Projeto Final: Desenvolvimento de um Sistema Web para Localização de Pessoas Desaparecidas (Front-End e Back-End)
 
 Nome do sistema: ReEncontrar!

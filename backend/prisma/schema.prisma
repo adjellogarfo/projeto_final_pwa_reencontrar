@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["fullTextSearch", "fullTextIndex"]
+
+}
+
+datasource db {
+  provider = "mysql"
+  url      = "mysql://root:MySql1720@localhost:3306/reunite_people_db"
+}
+
+model comment {
+  comment_id        Int           @id @default(autoincrement())
+  missing_person_id Int
+  comment           String?
+  posted_by_id      Int
+  timestamp         DateTime      @default(now())
+  missingperson     missingperson @relation(fields: [missing_person_id], references: [missing_person_id], map: "Comment_missing_person_id_fkey")
+  user              user          @relation(fields: [posted_by_id], references: [user_id], map: "Comment_posted_by_id_fkey")
+
+  @@index([missing_person_id], map: "Comment_missing_person_id_fkey")
+  @@index([posted_by_id], map: "Comment_posted_by_id_fkey")
+}
+
+model country {
+  country_id   Int        @id @default(autoincrement())
+  country_name String
+  province     province[]
+}
+
+model district {
+  district_id   Int        @id @default(autoincrement())
+  province_id   Int
+  district_name String
+  province      province   @relation(fields: [province_id], references: [province_id], map: "District_province_id_fkey")
+  location      location[]
+
+  @@index([province_id], map: "District_province_id_fkey")
+}
+
+model location {
+  location_id   Int             @id @default(autoincrement())
+  district_id   Int
+  description   String?
+  district      district        @relation(fields: [district_id], references: [district_id], map: "Location_district_id_fkey")
+  missingperson missingperson[]
+  user          user[]
+
+  @@index([district_id], map: "Location_district_id_fkey")
+}
+
+model missingperson {
+  missing_person_id      Int                  @id @default(autoincrement())
+  name                   String
+  age                    Int?
+  gender                 missingperson_gender
+  description            String?
+  last_known_location_id Int?
+  contact_info           String?
+  image                  String?
+  reported_by_id         Int
+  reported_at            DateTime             @default(now())
+  status                 missingperson_status @default(Ativo)
+  comment                comment[]
+  location               location?            @relation(fields: [last_known_location_id], references: [location_id], map: "MissingPerson_last_known_location_id_fkey")
+  user                   user                 @relation(fields: [reported_by_id], references: [user_id], map: "MissingPerson_reported_by_id_fkey")
+
+  @@index([last_known_location_id], map: "MissingPerson_last_known_location_id_fkey")
+  @@index([reported_by_id], map: "MissingPerson_reported_by_id_fkey")
+}
+
+model province {
+  province_id   Int        @id @default(autoincrement())
+  country_id    Int
+  province_name String
+  district      district[]
+  country       country    @relation(fields: [country_id], references: [country_id], map: "Province_country_id_fkey")
+
+  @@index([country_id], map: "Province_country_id_fkey")
+}
+
+model user {
+  user_id                   Int             @id @default(autoincrement())
+  user_uuid                 String          @unique(map: "User_user_uuid_key") @default(uuid())
+  full_name                 String
+  username                  String
+  email                     String          @unique(map: "email_UNIQUE")
+  password                  String
+  type                      user_type
+  organization_name         String?
+  organization_type         String?
+  organization_contact_info String?
+  contact_address           String?
+  contact_phone             String?
+  is_active                 Boolean         @default(true)
+  created_at                DateTime        @default(now())
+  location_id               Int?
+  comment                   comment[]
+  missingperson             missingperson[]
+  location                  location?       @relation(fields: [location_id], references: [location_id], map: "User_location_id_fkey")
+
+  @@index([location_id], map: "User_location_id_fkey")
+}
+
+enum missingperson_gender {
+  Masculino
+  Feminino
+  Outro
+}
+
+enum user_type {
+  Individual
+  Group
+  Administrator
+}
+
+enum missingperson_status {
+  Ativo
+  Resolvido
+}
